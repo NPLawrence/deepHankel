@@ -1,0 +1,9 @@
+name = "deepHankel"
+uuid = "0afe5608-7a23-4e65-8a15-13975f097b88"
+authors = ["NPLawrence <61165981+NPLawrence@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+ControlSystems = "a6e380b2-a6ca-5380-bf3e-84a91bcd477e"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
