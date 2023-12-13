@@ -1,3 +1,3 @@
 # deepHankel
  
-![Alt text](/src/misc/depth.gif?raw=true)
+![Alt text](https://github.com/NPLawrence/deepHankel/blob/main/src/misc/depth_gif.gif)
