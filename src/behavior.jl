@@ -52,7 +52,6 @@ d corresponds to how many singular values we use, while L in `ssa` is some fixed
 """
 function ssa(y, d; L=30)
 
-
     # L = Int(floor(length(y)/4))
     d = min(d+1,L) # I'm not sure why but tricking the algorithm into adding 1 extra singular value helps stability ALOT
 
@@ -66,8 +65,7 @@ function ssa(y, d; L=30)
     # H = rpca(H)[1]
     USV = svd(H)
     Happrox = USV.U[:,1:d] * Diagonal(USV.S[1:d]) * USV.Vt[1:d,:]
-    # I = 1:d
-    # Happrox = sum(USV.U[:,i]*USV.S[i]*USV.Vt[i,:]' for i in I)
+
     ynew = unhankel(Happrox)
 
 end
@@ -77,11 +75,6 @@ end
 """
 Creates excitation signal of order `L`. Additional inputs `num_data::Int` and `m::Int` ensure a minimum length signal is obtained.
 """
-function excite(L::Int; num_data::Int=100, m::Int=1)
-    num_data = max((m+1)*L , num_data)
-    u = randn(num_data)
-end
-
 function excite(num_data::Int=100)
     u = randn(num_data)
 end
@@ -96,12 +89,9 @@ function Hankel(u::Vector, L::Int)
     H = vcat([u[i:N-L+i]' for i in 1:L]...)
 end
 
+
 # Hankel(u,y,L) = Hankel(u,L), Hankel(y,L)
 Hankel_shift(u,y,L) = Hankel.([u[1:end-1], y[1:end-1], u[2:end], y[2:end]], L)
-
-
-# TODO: create a type that carries input-output signals, noise profile, and true system
-# TODO: use LinearSolve.jl and methods from Krylov.jl -- pass solver as argument
 
 
 """
@@ -119,8 +109,6 @@ function Hankel_solver(H_u::Matrix{Float64}, H_y::Matrix{Float64}, u_init::Vecto
         α = sol*b, sol
     end
 
-    # α = pinv(A)*b
-    # α = A\b, pinv(A)
     # sol = solve(prob, solver)
     # α = sol.u
     
@@ -137,7 +125,6 @@ Intended uses:
 function step_traj(H_u::Matrix{Float64}, H_y::Matrix{Float64}, α::Vector{Float64})
     H_y*α, H_u*α
 end
-
 
 """
 Hankel_SS(u_data::Vector{Float64}, y_data::Vector{Float64}, L::Int)
@@ -177,7 +164,8 @@ function Hankel_LQR(u_data, y_data, L; Q::Union{UniformScaling,Diagonal}=I, R::U
 
     sys = Hankel_SS(u_data, y_data, L)
     Â, B̂, Ĉ = sys.A, sys.B, sys.C
-    R̂ = 500*R
+    
+    R̂ = R
 
     if integrator
         A = [Â zeros(size(Â,1),size(Ĉ,1)); -Ĉ I]
@@ -197,12 +185,12 @@ function Hankel_LQR(B::behavior; Q::Union{UniformScaling,Diagonal}=I, R::Union{U
 
 end
 
-function step_LQR(P, u, y, L; tfinal = nothing)
+function step_LQR(P, u, y, L; tfinal = nothing, Q::Union{UniformScaling,Diagonal}=I, R::Union{UniformScaling,Diagonal}=I)
 
     Ts = P.Ts
     z = tf("z", Ts)
 
-    K = Hankel_LQR(u,y,L,integrator=true)
+    K = Hankel_LQR(u,y,L,Q=Q,R=R,integrator=true)
     H_u, H_y, H_u_shift, H_y_shift = Hankel_shift(u,y,L)
     H_pinv = pinv(vcat([H_u, H_y]...))
     A_fifo, B_fifo, C_fifo = fifo_LQR(K[1:end-1]', H_pinv, L)
@@ -241,8 +229,6 @@ function Hankel_rollout(B::behavior; noisy=true, solver=nothing)
 end
 
 
-
-
 """
 fifo_LQR(K,H)
 
@@ -268,16 +254,3 @@ function behavior_lsim(P,u,t,x,L)
         y = P.C*x
     end
 end
-
-function HankelLQR_rollout(P, u_data::Vector{Float64}, y_data::Vector{Float64}, L::Int; Q::Matrix=I, R::Matrix=I)
-
-    K = Hankel_LQR(u_data, y_data, L, Q=Q, R=R)
-    u(x,t) = -K*x
-
-    for t in 0:length(u_data)
-
-
-    end
-
-end
-
