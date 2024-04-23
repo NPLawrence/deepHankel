@@ -2,7 +2,7 @@
 
 Code for the experiments in "[Deep Hankel matrices with random elements](https://nplawrence.com)".
 
-![Alt text](/src/misc/depth_gif.gif)
+![Alt text](/examples/misc/depth_gif.gif)
 
 ## Installation
 Clone this repo, navigate to the directory in the Julia REPL, then type the commands:
